@@ -1,0 +1,86 @@
+  <head>
+    <title>Socket.IO chat</title>
+  </head>
+  <body>
+    <ul id="messages"></ul>
+    <div class="di">
+        <form id="chat">
+          <br>
+          <hr>
+          <br>
+          <div class="messages"></div>
+          <br>
+          <hr>
+          <br>
+          <input type="text" name="username" placeholder="Digite seu usuário" class="la"/>
+          <input type="text" name="message" placeholder="Digite sua mensagem" class="li"/>
+          <br>
+          <br>
+          <button class="btn btn-outline-success">Enviar</button>
+        </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+    $(function () {
+      var socket = io('http://localhost:3000');
+
+      function renderMessage(message){
+        $('.messages').append('<div class="message"><strong>'+ message.author +'</strong>: '+ message.message +'</div>');
+      }
+
+      socket.on('previousMessages', function(messages){
+        for (message of messages) {
+          renderMessage(message);
+        }
+      })
+
+      socket.on('receivedMessage', function(message){
+        renderMessage(message)
+      });
+
+      $('#chat').submit(function(event){
+        event.preventDefault(); // prevents page reloading
+
+        var author = $('input[name=username]').val()
+        var message = $('input[name=message]').val()
+
+        if (author.length && message.length) {
+          var messageObject = {
+            author: author,
+            message: message,
+          };
+
+          renderMessage(messageObject);
+
+          socket.emit('sendMessage', messageObject);
+        }
+      });
+
+      socket.on('chat message', function(msg){
+        $('#messages').append($('<li>').text(msg));
+      });
+    });
+  </script>
+  </body>
+  <style>
+  .di {
+    margin-left: 50px;
+    margin-right: 50px;
+  }
+
+  .li {
+    padding: 0px;
+    margin-bottom: 0px;
+  }
+
+  .la {
+    padding: 0px;
+    margin-top: 0px;
+  }
+
+  .messages {
+    font-family: cursive;
+  }
+  </style>
